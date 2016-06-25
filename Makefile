@@ -5,7 +5,7 @@ CFLAGS  = -g -O2 -Wall -Tstm32_flash.ld
 CFLAGS += -mlittle-endian -mthumb -mcpu=cortex-m4 -mthumb-interwork
 CFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
 
-CFLAGS += -Isrc -Isrc/firmware -Ilib/inc -Ilib/inc/core -Ilib/inc/peripherals
+CFLAGS += -Isrc -Ilib/inc -Ilib/inc/core -Ilib/inc/peripherals
 
 vpath %.c src
 vpath %.o obj
@@ -13,7 +13,8 @@ vpath %.a lib
 vpath %.s lib
 
 SRC  = main.c
-SRC += firmware/stm32f4xx_it.c firmware/system_stm32f4xx.c
+SRC += firmware/interrupt.c firmware/system_stm32f4xx.c
+SRC += firmware/io/gpio.c
 
 ASM = lib/startup_stm32f4xx.s
 
@@ -49,3 +50,9 @@ $(BIN): $(ELF)
 
 flash: $(BUILD)
 	st-flash write $(BIN) 0x8000000
+
+clean:
+	rm -f obj/*.o
+	rm -f obj/firmware/*.o
+	rm -f obj/firmware/io/*.o
+	rm -f bin/*

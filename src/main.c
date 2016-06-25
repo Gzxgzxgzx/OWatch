@@ -1,52 +1,40 @@
 #include "stm32f4_discovery.h"
 #include "stm32f4xx_conf.h"
+#include "firmware/io/gpio.h"
+#include "utils/regman.h"
+
+#define LED_OKAY   ((uint16_t)0x1000)
+#define LED_WARN   ((uint16_t)0x2000)
+#define LED_ERROR  ((uint16_t)0x4000)
+#define LED_STATUS ((uint16_t)0x8000)
 
 #define BLINK_DELAY 0xEFFFFF
 
-GPIO_InitTypeDef GPIO_InitStructure;
-
 void delay(__IO uint32_t dt)
 {
-  while (dt--); 
+  while (dt--);
 }
 
 int main(void)
 {
-  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);
+  //RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);
+  SET_WORD(RCC->AHB1ENR, 1UL, 3);
 
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12 | GPIO_Pin_13| GPIO_Pin_14| GPIO_Pin_15;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
-  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-  GPIO_Init(GPIOD, &GPIO_InitStructure);
+  gpio_init_t init = {
+    .pin   = GPIO_PIN_12,
+    .mode  = GPIO_MODE_OUT,
+    .type  = GPIO_TYPE_OD,
+    .speed = GPIO_SPEED_2MHZ,
+    .pupd  = GPIO_PUPD_DOWN
+  };
 
-  uint8_t i = 0;
-  uint16_t p;
+  gpio_init(GPIOD, &init);
+
   while (1)
   {
-    switch (i) {
-      case 0:
-          p = GPIO_Pin_12;
-          break;
-      case 1:
-          p = GPIO_Pin_13;
-          break;
-      case 2:
-          p = GPIO_Pin_14;
-          break;
-      case 3:
-          p = GPIO_Pin_15;
-          break;
-    }
-
-    GPIO_SetBits(GPIOD, p);
+    GPIOD->BSRRL = LED_OKAY;
     delay(BLINK_DELAY);
-    GPIO_ResetBits(GPIOD, p);
+    GPIOD->BSRRH = LED_OKAY;
     delay(BLINK_DELAY);
- 
-    if (++i == 4) {
-      i = 0;
-    }
   }
 }
